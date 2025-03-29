@@ -49,7 +49,7 @@ chmod +x BruteX.sh
 🔴 Desplegamos la herramienta como usuario privilegiado
 
 ```bash
-./BruteX.sh
+./BruteX.sh -d <wordlists.txt>
 ```
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
