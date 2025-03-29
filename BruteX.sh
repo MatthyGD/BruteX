@@ -96,7 +96,7 @@ function probar_credenciales() {
   local linea=0
   local inicio=$(date +%s)
   local num_cores=$(nproc)
-  local hilos=$((num_cores * 2))  # Usamos el doble de núcleos disponibles para hilos
+  local hilos=$((num_cores * 2))
   
   echo -e "\n${SEARCH_ICON} ${YELLOW}Iniciando el ataque con BruteX...${RESET}"
   echo -e "${PURPLE}──────────────────────────────────────────────────────${RESET}"
