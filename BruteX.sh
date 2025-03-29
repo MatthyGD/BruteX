@@ -98,7 +98,7 @@ function probar_credenciales() {
   local num_cores=$(nproc)
   local hilos=$((num_cores * 2))  # Usamos el doble de núcleos disponibles para hilos
   
-  echo -e "\n${SEARCH_ICON} ${YELLOW}Iniciando ataque con ${hilos} hilos paralelos...${RESET}"
+  echo -e "\n${SEARCH_ICON} ${YELLOW}Iniciando el ataque con BruteX...${RESET}"
   echo -e "${PURPLE}──────────────────────────────────────────────────────${RESET}"
   
   # Función que se ejecutará en cada hilo
