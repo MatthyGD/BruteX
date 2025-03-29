@@ -14,7 +14,7 @@
 
 # 💻 Descubre para avanzar con BruteX
 
-![BruteX](https://github.com/user-attachments/assets/26fc677e-f1eb-4c13-a3c1-a7a907270333)
+![BruteX](https://github.com/user-attachments/assets/71c12be1-fd7b-461f-8702-0fc4c2ef360e)
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
 
