@@ -37,6 +37,7 @@ function banner() {
   echo -e "${PURPLE} ╚═════╝ ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚══════╝╚═╝  ╚═╝${RESET}"
   echo -e "${YELLOW}                     BruteX - Ultimate Password Cracker${RESET}"
   echo -e "${CYAN}                Herramienta avanzada de Ataque de Diccionario by MatthyGD${RESET}\n"
+    echo -e "${PURPLE}──────────────────────────────────────────────────────────────────────────────────────────────${RESET}"
 }
 
 function mostrar_ayuda() {
@@ -44,14 +45,14 @@ function mostrar_ayuda() {
   echo -e "${BULLET} ${CYAN}Opciones:${RESET}"
   echo -e "  ${BULLET} ${YELLOW}-d${RESET}   Especifica el archivo diccionario a usar"
   echo -e "  ${BULLET} ${YELLOW}-h${RESET}   Muestra este mensaje de ayuda"
-  echo -e "${PURPLE}──────────────────────────────────────────────────────${RESET}"
+  echo -e "${PURPLE}──────────────────────────────────────────────────────────────────────────────────────────────${RESET}"
 }
 
 function info() {
   echo -e "${BULLET} ${CYAN}Diccionario:${RESET} ${BLUE}${DICCIONARIO}${RESET}"
   echo -e "${BULLET} ${CYAN}Tamaño del diccionario:${RESET} ${BLUE}$(wc -l < "$DICCIONARIO") líneas${RESET}"
   echo -e "${BULLET} ${CYAN}Usuarios detectados:${RESET} ${BLUE}${#usuarios_interactivos[@]}${RESET}"
-  echo -e "${PURPLE}──────────────────────────────────────────────────────${RESET}\n"
+  echo -e "${PURPLE}──────────────────────────────────────────────────────────────────────────────────────────────${RESET}"
 }
 
 function ctrl_c() {
@@ -87,7 +88,7 @@ function detectar_usuarios() {
     echo -e "     ↳ ${YELLOW}Shell:${RESET} ${BLUE}${shell}${RESET}"
     echo -e "     ↳ ${YELLOW}Home:${RESET} ${BLUE}${home}${RESET}"
   done
-  echo -e "${PURPLE}──────────────────────────────────────────────────────${RESET}"
+  echo -e "${PURPLE}──────────────────────────────────────────────────────────────────────────────────────────────${RESET}"
 }
 
 function probar_credenciales() {
@@ -96,10 +97,10 @@ function probar_credenciales() {
   local linea=0
   local inicio=$(date +%s)
   local num_cores=$(nproc)
-  local hilos=$((num_cores * 2))
+  local hilos=$((num_cores * 2))  # Usamos el doble de núcleos disponibles para hilos
   
   echo -e "\n${SEARCH_ICON} ${YELLOW}Iniciando el ataque con BruteX...${RESET}"
-  echo -e "${PURPLE}──────────────────────────────────────────────────────${RESET}"
+  echo -e "${PURPLE}──────────────────────────────────────────────────────────────────────────────────────────────${RESET}"
   
   # Función que se ejecutará en cada hilo
   probar_en_hilo() {
@@ -144,12 +145,12 @@ function probar_credenciales() {
     
   done < "$diccionario"
   
-  echo -e "\n${PURPLE}──────────────────────────────────────────────────────${RESET}"
+  echo -e "${PURPLE}──────────────────────────────────────────────────────────────────────────────────────────────${RESET}"
 }
 
 function mostrar_resultados() {
   echo -e "\n${LOCK_ICON} ${YELLOW}🔓 RESUMEN FINAL DEL ATAQUE 🔓${RESET}"
-  echo -e "${PURPLE}──────────────────────────────────────────────────────${RESET}"
+  echo -e "${PURPLE}──────────────────────────────────────────────────────────────────────────────────────────────${RESET}"
   
   if [ ${#credenciales_encontradas[@]} -gt 0 ]; then
     echo -e "${CRACKED_ICON} ${GREEN}¡ATAQUE EXITOSO!${RESET} ${HAPPY_ICON}"
@@ -164,7 +165,7 @@ function mostrar_resultados() {
       for usuario in "${!credenciales_encontradas[@]}"; do
         echo "║  Usuario: ${usuario}"
         echo "║  Contraseña: ${credenciales_encontradas[$usuario]}"
-        echo "║────────────────────────────────────────║"
+  echo -e "${PURPLE}──────────────────────────────────────────────────────────────────────────────────────────────${RESET}"
       done
       echo "╚════════════════════════════════════════╝"
     } > "$archivo_resultados"
@@ -189,9 +190,9 @@ function mostrar_resultados() {
     echo -e "\n${WARNING_ICON} ${YELLOW}Ataque interrumpido - ${restantes} usuarios no fueron probados completamente${RESET}"
   fi
   
-  echo -e "${PURPLE}──────────────────────────────────────────────────────${RESET}"
+  echo -e "${PURPLE}──────────────────────────────────────────────────────────────────────────────────────────────${RESET}"
   echo -e "${CLOCK_ICON} ${CYAN}Tiempo total de ejecución:${RESET} ${BLUE}$(date -u -d @$(($(date +%s)-inicio)) +'%H:%M:%S')${RESET}"
-  echo -e "${PURPLE}──────────────────────────────────────────────────────${RESET}"
+  echo -e "${PURPLE}──────────────────────────────────────────────────────────────────────────────────────────────${RESET}"
 }
 
 # Main
