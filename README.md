@@ -20,6 +20,7 @@
 <img src="https://capsule-render.vercel.app/api?type=waving&color=0:0d1117,50:ff5a6e,100:ff5ab4&height=220&section=header&text=BruteX&fontSize=72&fontColor=ffffff&animation=twinkling&fontAlignY=40&desc=Advanced%20Password%20Cracking%20Tool%20%E2%80%94%20by%20MatthyGD&descSize=18&descAlignY=62&descColor=ffc0d0" />
 <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=18&duration=3000&pause=800&color=FF5A6E&center=true&vCenter=true&width=700&lines=Parallel+Dictionary+Attack+via+su;Auto-detects+All+Interactive+Users;nproc+%C3%97+users+Concurrent+Jobs;Real-time+Progress+%2B+ETA+Display" alt="Typing SVG" />
 </div>
+
 ---
  
 ## 💥 ¿Qué es BruteX?
